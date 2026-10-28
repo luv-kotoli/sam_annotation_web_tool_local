@@ -80,7 +80,7 @@
     try {
       if(button.dataset.action==='delete'){
         if(!await confirmAction('删除本机视频',`将删除 1 个视频及其阶段、征象和病例标注：\n${video.original_filename}\n建议先导出标注。此操作不可撤销。`,'删除视频'))return;
-        await api(`/api/videos/${video.id}`,{method:'DELETE',body:JSON.stringify({expected_revision:video.revision,confirm_filename:video.original_filename})});notice('视频已从本机视频库删除。');await load();
+        await api(`/api/videos/${video.id}`,{method:'DELETE',body:JSON.stringify({expected_revision:video.revision,confirm_filename:video.original_filename})});state.selected.delete(video.id);notice('视频已从本机视频库删除。');await load();
       } else if(button.dataset.action==='extract') {
         const fps=Number($('frameFps').value);
         await api(`/api/videos/${video.id}/extract`,{method:'POST',body:JSON.stringify({fps,expected_revision:video.revision})});notice(`已提交 ${fps} fps 本机抽帧任务，仅抽取可判读有效阶段。`);await load();

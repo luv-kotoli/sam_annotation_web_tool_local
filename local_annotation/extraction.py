@@ -13,7 +13,7 @@ import zipfile
 
 from fastapi import HTTPException
 
-from case_bundle import SCHEMA, MAX_ARCHIVE, canonical, digest_file, seal
+from case_bundle import SCHEMA, MAX_ARCHIVE, MAX_ENTRIES, MAX_MANIFEST, MAX_UNPACKED, canonical, digest_file, seal
 from .store import encode, now
 
 
@@ -143,6 +143,8 @@ class Extractions:
                     path=root+'frames/'+frame['filename']
                     frames.append({key:value for key,value in frame.items() if key!='filename'}|{'path':path})
                     sources.append((path,file,frame['sha256'],frame['size_bytes']))
+                    if len(sources)+2*len(ids)+1>MAX_ENTRIES:
+                        raise HTTPException(413,'所选病例文件总数超过交接包限制，请分批导出')
                 case={'portable_id':identifier,'case_id':video['case_id'],
                     'video':{key:value for key,value in self.store.public_video(conn,video).items() if key in {'sha256','size_bytes','original_filename','duration_seconds','width','height','codec'}},
                     'profile':{'details':json.loads(video['profile_json'])},
@@ -151,6 +153,8 @@ class Extractions:
                     'extraction':{'id':extraction['id'],'fps':extraction['fps'],'revision':extraction['revision'],'created_at':extracted['created_at']},
                     'frames':frames,'annotation_path':root+'annotations.json','report_path':root+'report.json'}
                 cases.append(case)
+        if sum(item[3] for item in sources)>MAX_UNPACKED-MAX_MANIFEST:
+            raise HTTPException(413,'所选帧总大小超过交接包限制，请分批导出')
         identifier=uuid4().hex
         temporary=self.store.settings.temporary/(identifier+'.zip')
         target=self.store.settings.exports/(identifier+'.zip')
@@ -168,7 +172,10 @@ class Extractions:
                         archive.writestr(case[key],raw)
                         files.append({'path':case[key],'sha256':hashlib.sha256(raw).hexdigest(),'size_bytes':len(raw)})
                 manifest=seal({'schema':SCHEMA,'cases':cases,'files':files})
-                archive.writestr('manifest.json',canonical(manifest))
+                raw_manifest=canonical(manifest)
+                if len(raw_manifest)>MAX_MANIFEST:
+                    raise HTTPException(413,'病例清单过大，请分批导出')
+                archive.writestr('manifest.json',raw_manifest)
             if temporary.stat().st_size>MAX_ARCHIVE:
                 raise HTTPException(413,'导出包超过 2 GiB，请减少所选病例或抽帧率')
             temporary.replace(target)
