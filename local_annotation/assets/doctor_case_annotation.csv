@@ -1,0 +1,1 @@
+case_id,visit_id,annotator_id,annotation_date,diagnosis_main,diagnosis_secondary,pre_or_post_op,overall_quality,usable_for_model,confidence_score,notes

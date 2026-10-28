@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>视频标注 · 本地工作区</title>
+    <link rel="stylesheet" href="/workflow/static/workflow.css?v=3" />
+    <link rel="stylesheet" href="/clinical/assets/editor.css?v=30-header-provenance" />
+    <script src="/workflow/static/workspace-shell.js?v=10-presence" defer></script>
+    <script src="/clinical/assets/crop-overlay.js?v=1" defer></script>
+    <script src="/clinical/assets/editor-layout.js?v=1-pane-resize" defer></script>
+    <script src="/clinical/assets/editor.js?v=33-header-provenance" defer></script>
+  </head>
+  <body class="clinical-page clinical-editor-page" data-mode="{{mode}}">
+    <header class="topbar">
+      <a class="brand" href="/app/"
+        ><span class="brand-mark">V</span
+        ><span>视频阶段标注<small>本地工作区</small></span></a
+      >
+      <nav id="navigation" aria-label="模块导航"></nav>
+      <div class="page-heading editor-heading">
+        <div class="editor-title"><h1>视频标注</h1></div>
+        <div class="context-main" aria-label="视频状态">
+          <span id="uploadState" class="badge">视频未上传</span>
+          <span id="reviewStatus" class="badge" hidden>待复核</span>
+          <span id="casePersistence" class="muted"></span>
+        </div>
+        <div class="actions">
+          <a class="icon" href="/clinical/" aria-label="返回视频列表" title="返回视频列表"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7M7 12h14"/></svg></a>
+          <a
+            id="exportButton"
+            class="icon"
+            href="/clinical/export.zip"
+            title="导出临床标注"
+            aria-label="导出临床标注"
+            data-tooltip="导出临床标注"
+            ><svg viewBox="0 0 24 24">
+              <path d="M4 16v5h16v-5M12 3v13m-6-6 6 6 6-6" /></svg
+          ></a>
+        </div>
+      </div>
+      <span id="userBadge" class="user"></span>
+      <div class="editor-provenance" role="group" aria-label="当前病例与视频">
+        <div class="editor-provenance-item"><span id="caseIdLabel">病例编号</span><input id="caseId" type="text" readonly aria-readonly="true" aria-labelledby="caseIdLabel" /></div>
+        <div class="editor-provenance-item"><span>视频名</span><strong id="videoName"></strong></div>
+        <div class="editor-provenance-item"><span>标注人</span><strong id="annotatorText"></strong></div>
+        <div class="editor-provenance-item"><span>视频编号</span><strong id="currentVideoText"></strong></div>
+      </div>
+    </header>
+    <main>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <input id="visitId" type="hidden" />
+      <input id="videoId" type="hidden"><input id="annotatorId" type="hidden"><input id="batchId" type="hidden">
+      <div id="legacyLockNotice" class="notice" role="status" hidden>历史标注已归档锁定，可查看视频；病例信息、阶段和征象记录仅供查阅。</div>
+      <div id="workspace" class="clinical-workspace" aria-busy="true">
+        <section class="viewer-column" aria-label="视频与时间轴">
+          <div class="panel viewer-panel">
+            <div
+              id="videoStage"
+              class="video-stage"
+              tabindex="0"
+              aria-label="视频预览区"
+            >
+              <video id="videoPlayer" playsinline preload="metadata" disablepictureinpicture disableremoteplayback></video>
+              <svg id="videoCropOverlay" class="video-crop-overlay" aria-label="AI 实际输入裁剪框" hidden><polygon vector-effect="non-scaling-stroke" /></svg>
+              <div class="video-overlay">
+                <div class="video-source-actions" role="group" aria-label="视频来源操作">
+                  <button id="loadRemoteVideo" type="button" aria-label="重新加载视频" title="重新加载视频" disabled>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v5h16v-5M12 3v13m-6-6 6 6 6-6" /></svg>
+                    <span>重新加载</span>
+                  </button>
+                  <button id="toggleCropOverlay" type="button" aria-pressed="true" title="显示或隐藏 AI 实际输入裁剪框" hidden>裁剪框</button>
+                </div>
+                <div class="video-overlay-badges"><span id="cropOverlayStatus" class="badge" role="status" hidden></span><span id="playbackSource" class="badge" aria-live="polite">未加载视频</span></div>
+              </div>
+              <div id="videoEmptyState" class="video-empty">
+                <span class="empty-play" aria-hidden="true">▷</span
+                ><strong>正在加载已上传视频</strong
+                ><span>请从视频列表选择病例进入</span
+                ><small>视频加载后即可继续编辑</small>
+              </div>
+            </div>
+            <div class="transport-bar">
+              <div class="transport-controls">
+                <button
+                  id="playToggle"
+                  class="icon"
+                  type="button"
+                  title="播放 / 暂停（空格）"
+                  aria-label="播放 / 暂停"
+                >
+                  <svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z" /></svg>
+                </button>
+                <button id="backButton" type="button" title="后退 3 秒（←）">
+                  −3s
+                </button>
+                <button id="forwardButton" type="button" title="前进 3 秒（→）">
+                  +3s
+                </button>
+                <span id="positionLabel" class="time-label">0.0 / 0.0 秒</span>
+              </div>
+              <button
+                id="newSegment"
+                class="primary new-segment-button"
+                type="button"
+                title="从当前播放位置新建选段；拖动时间轴可调整范围"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" /></svg>
+                新建选段
+              </button>
+              <div class="transport-options">
+                <div class="video-navigation" role="group" aria-label="切换视频">
+                  <button id="previousVideo" type="button" class="icon" aria-label="上一个视频" title="上一个视频：同步阶段修改后切换" disabled><svg viewBox="0 0 24 24"><rect x="7" y="4" width="13" height="16" rx="3"/><path d="M3 8v11a3 3 0 0 0 3 3m9-14-4 4 4 4"/></svg></button>
+                  <span id="videoPosition" aria-live="polite"></span>
+                  <button id="nextVideo" type="button" class="icon" aria-label="下一个视频" title="下一个视频：同步阶段修改后切换" disabled><svg viewBox="0 0 24 24"><rect x="4" y="4" width="13" height="16" rx="3"/><path d="M21 8v11a3 3 0 0 1-3 3M9 8l4 4-4 4"/></svg></button>
+                </div>
+                <select id="playbackRate" aria-label="播放速度">
+                  <option value="0.5">0.5×</option>
+                  <option value="0.75">0.75×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="1.25">1.25×</option>
+                  <option value="1.5">1.5×</option>
+                  <option value="2">2×</option>
+                </select>
+                <button
+                  id="previewSelection"
+                  class="icon"
+                  type="button"
+                  title="预览选段"
+                  aria-label="预览选段"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 4v16M20 4v16m-11-13 7 5-7 5Z" />
+                  </svg>
+                </button>
+                <label class="loop-option"
+                  ><input id="loopSelection" type="checkbox" />循环</label
+                >
+              </div>
+            </div>
+            <section class="timeline-panel" aria-label="视频时间轴">
+              <div class="timeline-heading">
+                <strong>时间轴</strong><span id="rangeSummary" class="muted">拖动选择片段</span>
+                <div class="timeline-history" role="group" aria-label="标注撤销与重做">
+                  <button id="undoAnnotation" class="icon" type="button" title="撤销（Ctrl+Z）" aria-label="撤销标注" disabled><svg viewBox="0 0 24 24"><path d="m9 5-5 5 5 5M4 10h10a6 6 0 0 1 0 12" /></svg></button>
+                  <button id="redoAnnotation" class="icon" type="button" title="重做（Ctrl+Shift+Z）" aria-label="重做标注" disabled><svg viewBox="0 0 24 24"><path d="m15 5 5 5-5 5M20 10H10a6 6 0 0 0 0 12" /></svg></button>
+                </div>
+              <div class="timeline-legend">
+                <span><i class="dot unused"></i>无用片段</span>
+                <span><i class="dot effective"></i>有效观察</span>
+                <span><i class="dot finding"></i>征象</span>
+              </div>
+              </div>
+              <div class="timeline-tools"><span class="timeline-tools-main"><span id="timelineViewport" aria-label="当前时间轴可见范围"></span><span class="timeline-selection-help">条带上/下方拖动红线定位 · 条带内平移/框选 · 拖动边缘预览边界</span></span><span class="timeline-zoom-help">Ctrl + 滚轮缩放 <button id="fitTimeline" class="icon" type="button" title="适应整个视频：恢复完整时间轴与默认缩放" aria-label="显示完整时间轴"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5M8 12h8m-5-3-3 3 3 3m2-6 3 3-3 3"/></svg></button></span></div>
+              <canvas
+                id="timelineCanvas"
+                height="90"
+                tabindex="0"
+                aria-label="拖动红线调整播放位置，选区外拖动框选，选区内拖动平移，边缘拖动调整范围"
+              ></canvas>
+
+            </section>
+          </div>
+          <details class="keyboard-help" open>
+            <summary>快捷键说明</summary>
+            <p>
+              <kbd>空格</kbd> 播放 / 暂停　<kbd>←</kbd> <kbd>→</kbd> 跳转 3
+              秒　<kbd
+                >Ctrl S</kbd
+              >
+              保存当前页面标注。<kbd>Ctrl Z</kbd> 撤销、<kbd>Ctrl Shift Z</kbd> 重做阶段与征象编辑（含已保存的记录，仅限本次打开的工作区）。
+            </p>
+          </details>
+        </section>
+        <aside class="editor-column" aria-label="标注编辑">
+          <section id="segmentWorkspace" class="segment-workspace panel" aria-label="片段记录与标注">
+          <div id="annotationWorkspace" class="annotation-workspace" aria-label="标注记录与病例信息">
+          <details id="recordsDetails" class="panel records-panel" open>
+            <summary class="records-heading"><span class="records-heading-title">已保存的标注 <span id="recordCount" class="badge">0</span></span></summary>
+            <div class="table-wrap">
+              <table id="phaseTable" class="data-table active" aria-label="片段阶段与征象标注"></table>
+              <table id="findingTable" class="data-table" hidden></table>
+            </div>
+          </details>
+          <section id="caseDetails" class="panel case-panel" aria-label="病例信息">
+            <div class="case-heading"><strong>病例信息</strong><span id="caseSaveState" class="summary-hint">未保存</span><span id="caseProfileState" class="summary-hint" role="status" hidden></span><button id="saveCase" type="button">保存病例 <kbd>Ctrl S</kbd></button></div>
+            <div class="case-form-grid case-form-compact case-two-columns">
+              <div class="case-left-column">
+                <div class="case-person-row"><div class="case-sex-field"><span class="case-field-title" id="caseSexLabel">性别</span><div id="caseSexChoices" role="group" aria-labelledby="caseSexLabel"></div></div>
+                <label class="case-age-field">年龄（岁）<input id="patientAge" data-profile="age" type="number" min="0" max="130" step="1"></label></div>
+                <label class="diagnosis-field"><span>诊断</span><textarea id="diagnosisMain" rows="1" wrap="off" maxlength="2000" placeholder="填写诊断"></textarea></label>
+                <div class="case-common-diagnoses"><span class="case-field-title">常用诊断</span><div id="caseDiagnosisChoices" class="case-diagnosis-choices" role="group" aria-label="常用诊断快捷填写"></div></div>
+              </div>
+              <div class="case-right-column"><div class="case-exam-field"><span class="case-field-title" id="caseExamLabel">检查类型</span><div id="preOrPostOpChoices" role="group" aria-labelledby="caseExamLabel"></div></div>
+              <label class="case-notes-field">病例备注<textarea id="caseNotes" rows="2" placeholder="填写病例备注"></textarea></label></div>
+            </div>
+          </section>
+          <div id="annotationResizeHandle" class="annotation-resize-handle" role="separator" tabindex="0" aria-label="调整上方信息与当前片段的高度" aria-orientation="horizontal" aria-controls="annotationWorkspace annotationEditorDetails" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33" title="上下拖动调整高度 · 方向键微调 · 双击恢复默认"><span aria-hidden="true"></span></div>
+          </div>
+          <details id="annotationEditorDetails" class="panel annotation-panel" aria-label="阶段与征象标注" open>
+<summary class="annotation-editor-heading" tabindex="-1"><strong>当前片段</strong><button id="toggleAnnotationEditor" class="annotation-collapse" type="button" aria-expanded="true" aria-controls="annotationEditorBody annotationEditorActions" aria-label="收起当前片段" title="收起当前片段">−</button></summary>
+<div id="annotationEditorBody" class="annotation-editor-body">
+            <div class="annotation-selection" aria-label="阶段标注">
+              <div class="editor-content annotation-range">
+                <input id="startSec" type="hidden" value="0"><input id="endSec" type="hidden" value="0"><strong id="selectionTitle" hidden>新选段</strong>
+              <div id="phasePrimaryEditor" class="annotation-primary" aria-label="当前视频阶段">
+                <div id="phaseEditor" role="tabpanel" aria-label="阶段标注">
+                  <h3 class="annotation-section-title">阶段标注</h3><div class="phase-classification-row">
+                    <div class="choice-block"><div class="choice-title">视频阶段</div><div id="phaseButtons" class="choice-grid"></div></div>
+                    <div id="phaseQualityBlock" class="choice-block"><div class="choice-title">画面质量</div><div id="phaseQualityChoices" class="choice-grid"></div></div>
+                  </div>
+                  <div id="visibleSideBlock" class="choice-block"><div class="choice-title">可见侧别</div><div id="visibleSideChoices" class="choice-grid"></div></div>
+                </div>
+              </div>
+              </div>
+            </div>
+            <div class="annotation-fields" aria-label="征象标注">
+              <div class="editor-content annotation-fields-scroll">
+                <div id="findingEditor" role="tabpanel" aria-label="征象标注">
+                  <div class="finding-heading"><h3 class="annotation-section-title">征象标注</h3></div>
+                  <p id="findingScopeHint" class="finding-scope-hint" role="status" hidden>请选择有效观察片段后标注征象</p>
+                  <fieldset id="findingFieldset" class="finding-fieldset" disabled>
+                    <input id="clipId" type="hidden">
+                    <div id="findingControls" class="finding-controls"></div>
+                  </fieldset>
+                </div>
+              </div>
+            </div>
+            <label class="annotation-notes-field">备注<textarea id="annotationNotes" rows="2" placeholder="本片段阶段与征象的补充说明"></textarea></label>
+          </div>
+          <div id="annotationEditorActions" class="editor-actions"><span id="saveState" class="save-state" role="status">Ctrl+S 保存当前页面标注</span><button id="retryPhaseSave" type="button" hidden>重试保存</button></div>
+</details>
+          </section>
+          <div class="review-actions"><button id="savePageAnnotations" type="button">保存当前页面标注 <kbd>Ctrl S</kbd></button><button id="reviewButton" class="primary review-complete" type="button" aria-label="完成复核" title="核对标注后提交复核；保存当前视频的人工复核状态" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-9"/></svg>完成复核</button></div>
+        </aside>
+      </div>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <dialog id="confirmDialog">
+      <form method="dialog">
+        <h2 id="confirmTitle">确认操作</h2>
+        <p id="confirmMessage" class="muted"></p>
+        <div class="dialog-footer">
+          <button id="confirmCancel" value="cancel">取消</button
+          ><button id="confirmOk" value="confirm" class="primary">确认</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

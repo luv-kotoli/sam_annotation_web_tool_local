@@ -1,0 +1,173 @@
+{
+  "source_project": "sam_annotation_web_tool",
+  "description": "本地版复用的编辑器、词表及导出表头；本地适配后的文件可与原始摘要不同。",
+  "files": [
+    {
+      "origin": "clinical_static/workspace.html",
+      "target": "local_annotation/assets/workspace.html",
+      "source_sha256": "46b74ce14635228b11afdd0444868bcb5532f22ba794190377ac7569e0e858a7",
+      "local_sha256": "f3c052ba03ee6a06790881a4534adfd1b5cbcc81ed0bf2c716a6b995f54ceebb"
+    },
+    {
+      "origin": "clinical_static/editor.js",
+      "target": "local_annotation/assets/editor.js",
+      "source_sha256": "745f87461811f205f3c9afc70e638ddeabc54929f9b7b191baa1be5c037bcb53",
+      "local_sha256": "81d014800788ffc345aa63bb7d2d3b6fb0e8f79c1741f4685a4d642a833e19b1"
+    },
+    {
+      "origin": "clinical_static/editor.css",
+      "target": "local_annotation/assets/editor.css",
+      "source_sha256": "44256b027ceaa6d95dbef9fc700db8423dfbe9411521703435d607a29a1ea938",
+      "local_sha256": "44256b027ceaa6d95dbef9fc700db8423dfbe9411521703435d607a29a1ea938"
+    },
+    {
+      "origin": "clinical_static/editor-layout.js",
+      "target": "local_annotation/assets/editor-layout.js",
+      "source_sha256": "6eb2154290f32d7b68a47a25f26f158cd2458662c91c545de0d6551eea906c67",
+      "local_sha256": "6eb2154290f32d7b68a47a25f26f158cd2458662c91c545de0d6551eea906c67"
+    },
+    {
+      "origin": "clinical_static/crop-overlay.js",
+      "target": "local_annotation/assets/crop-overlay.js",
+      "source_sha256": "d4ea3fbbc78050831f85037526559498d5ff144ac666cd95875ad317c03bf182",
+      "local_sha256": "d4ea3fbbc78050831f85037526559498d5ff144ac666cd95875ad317c03bf182"
+    },
+    {
+      "origin": "workflow.css",
+      "target": "local_annotation/assets/workflow.css",
+      "source_sha256": "c044afe8aa94725d71b30e0006e3de48b20ce706478fede5958beaf608c88dcc",
+      "local_sha256": "c044afe8aa94725d71b30e0006e3de48b20ce706478fede5958beaf608c88dcc"
+    },
+    {
+      "origin": "clinical_catalog.json",
+      "target": "local_annotation/assets/catalog.json",
+      "source_sha256": "ded2b4fd8d4dbf0a9c0bceb87a0cce845153033b77498982fd45581e856cbe30",
+      "local_sha256": "ded2b4fd8d4dbf0a9c0bceb87a0cce845153033b77498982fd45581e856cbe30"
+    },
+    {
+      "origin": "clinical_templates/doctor_case_annotation.csv",
+      "target": "local_annotation/assets/doctor_case_annotation.csv",
+      "source_sha256": "e96687acd7d036f83cf9cf3bd3be11fcd2250a4b2ae30b66e79eb05dfbe24d7d",
+      "local_sha256": "e96687acd7d036f83cf9cf3bd3be11fcd2250a4b2ae30b66e79eb05dfbe24d7d"
+    },
+    {
+      "origin": "clinical_templates/doctor_video_phase_annotation.csv",
+      "target": "local_annotation/assets/doctor_video_phase_annotation.csv",
+      "source_sha256": "83172555972e2d910306710a77a5f3dd6b120932b9ccf66393a2aa2653a613ad",
+      "local_sha256": "83172555972e2d910306710a77a5f3dd6b120932b9ccf66393a2aa2653a613ad"
+    },
+    {
+      "origin": "clinical_templates/doctor_effective_clip_finding_annotation.csv",
+      "target": "local_annotation/assets/doctor_effective_clip_finding_annotation.csv",
+      "source_sha256": "6c3ead600d75c55f95116a0bccc454f6c59b6d496be02bc518447e642bd782f5",
+      "local_sha256": "6c3ead600d75c55f95116a0bccc454f6c59b6d496be02bc518447e642bd782f5"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "inference/inference_service/phase_engine.py",
+      "target": "local_annotation/phase_reference/phase_engine.py",
+      "source_sha256": "6db54f51c5d3f5cc381583a5367cd0b336a4b2441cacaacc2248d3eedccdaf96",
+      "local_sha256": "163f96be71ef71441552b53174b22bb536e0427b1431feb4250dd525a480b97c"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "inference/inference_service/adaptive_fov.py",
+      "target": "local_annotation/phase_reference/adaptive_fov.py",
+      "source_sha256": "21067cd5418e05ea16a1acc00e4f95a6cc28e117faba9b627fb11fd5a475e047",
+      "local_sha256": "21067cd5418e05ea16a1acc00e4f95a6cc28e117faba9b627fb11fd5a475e047"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "compute/src/annotation_compute/phase_binary.py",
+      "target": "local_annotation/phase_reference/phase_binary.py",
+      "source_sha256": "b28d166b69a18bc0b3ebdce0a44a39d5761c06c71735b464894e12a1fc93927c",
+      "local_sha256": "b28d166b69a18bc0b3ebdce0a44a39d5761c06c71735b464894e12a1fc93927c"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "compute/src/annotation_compute/phase_prediction.py",
+      "target": "local_annotation/phase_reference/phase_prediction.py",
+      "source_sha256": "278ea94daa8a6788eabdb513a4c9fb35a9f4cf78202035fc91aee79644134cb1",
+      "local_sha256": "278ea94daa8a6788eabdb513a4c9fb35a9f4cf78202035fc91aee79644134cb1"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "compute/src/annotation_compute/phase_study_metrics.py",
+      "target": "local_annotation/phase_reference/phase_study_metrics.py",
+      "source_sha256": "05ba29e4631c4405a6d2c9a8cb268596cb443d12a30c260f4499ec2925408f7d",
+      "local_sha256": "05ba29e4631c4405a6d2c9a8cb268596cb443d12a30c260f4499ec2925408f7d"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/scripts/batch_infer_directory.py",
+      "target": "local_annotation/phase_reference/model_project/scripts/batch_infer_directory.py",
+      "source_sha256": "759a6d4a3ea511f8f695700d969482a17da62c3b82f9eca44d6d7b8ec1175d2f",
+      "local_sha256": "759a6d4a3ea511f8f695700d969482a17da62c3b82f9eca44d6d7b8ec1175d2f"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/labeling.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/labeling.py",
+      "source_sha256": "720bf25018f6cb0c9a82e071175fd8ed2ec6b08b008092fc4ddff93c22cf364d",
+      "local_sha256": "720bf25018f6cb0c9a82e071175fd8ed2ec6b08b008092fc4ddff93c22cf364d"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/config.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/config.py",
+      "source_sha256": "c1ab16b4c906e406704e118619a7f5e23e6c3da6845468529ebcc518ae677cd3",
+      "local_sha256": "c1ab16b4c906e406704e118619a7f5e23e6c3da6845468529ebcc518ae677cd3"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/models.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/models.py",
+      "source_sha256": "dcaca876f5604567e815020bbe510c9f2bdf313debe27b970de2e537a50c93e0",
+      "local_sha256": "dcaca876f5604567e815020bbe510c9f2bdf313debe27b970de2e537a50c93e0"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/__init__.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/__init__.py",
+      "source_sha256": "78442d4fa046b830ac42579b7252aab39e3d03e377ab06c573d8bc219ce76468",
+      "local_sha256": "78442d4fa046b830ac42579b7252aab39e3d03e377ab06c573d8bc219ce76468"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/video.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/video.py",
+      "source_sha256": "ab81eb622bd5772dfaa267cd60f1e69652a07a7225ba44e610c2b2a217206aec",
+      "local_sha256": "ab81eb622bd5772dfaa267cd60f1e69652a07a7225ba44e610c2b2a217206aec"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/features.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/features.py",
+      "source_sha256": "15ac7e9eb7c3542dc1cc56212238ec67933b09af3a5bd28b537701c3e6fe9bfc",
+      "local_sha256": "15ac7e9eb7c3542dc1cc56212238ec67933b09af3a5bd28b537701c3e6fe9bfc"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/src/nasal_qc/metrics.py",
+      "target": "local_annotation/phase_reference/model_project/src/nasal_qc/metrics.py",
+      "source_sha256": "a8b9d2fafab6681dab438f11875761933aaa9330be4d628ff363203861f7522b",
+      "local_sha256": "a8b9d2fafab6681dab438f11875761933aaa9330be4d628ff363203861f7522b"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/configs/raw020_no_sidegate.yaml",
+      "target": "local_annotation/phase_reference/model_project/configs/raw020_no_sidegate.yaml",
+      "source_sha256": "06a84d7352ca66a60982fa91744e7c313acd225da3c8e65049a376ca24125493",
+      "local_sha256": "06a84d7352ca66a60982fa91744e7c313acd225da3c8e65049a376ca24125493"
+    },
+    {
+      "source_project": "sam_annotation_web_tool_gpu",
+      "origin": "phase-model-project/configs/brightness_nogate_default.yaml",
+      "target": "local_annotation/phase_reference/model_project/configs/brightness_nogate_default.yaml",
+      "source_sha256": "80863b4a1a092c2b0e2fa1ecc993f24d5022d7f013ecbc5b252f7dd513cdaf5f",
+      "local_sha256": "80863b4a1a092c2b0e2fa1ecc993f24d5022d7f013ecbc5b252f7dd513cdaf5f"
+    }
+  ],
+  "local_version": "0.2.0",
+  "notes": "Local changes include standalone navigation, local storage, reviewed extraction and portable case-bundle transfer. Source feature function and AdaptiveFOV bytes remain compatible."
+}

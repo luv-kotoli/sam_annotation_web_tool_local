@@ -1,0 +1,402 @@
+{
+  "version": 2,
+  "image_categories": [
+    {
+      "name": "上鼻甲",
+      "color": "#14b8a6",
+      "description": "图像中上鼻甲对应的区域。"
+    },
+    {
+      "name": "中鼻甲",
+      "color": "#3b82f6",
+      "description": "图像中中鼻甲对应的区域。"
+    },
+    {
+      "name": "鼻中隔",
+      "color": "#a855f7",
+      "description": "图像中鼻中隔对应的区域。"
+    },
+    {
+      "name": "鼻腔分泌物",
+      "color": "#f59e0b",
+      "description": "图像中鼻腔分泌物对应的区域。"
+    }
+  ],
+  "case_fields": [
+    {
+      "key": "case_sex",
+      "title": "性别",
+      "options": [
+        {
+          "value": "male",
+          "name": "男"
+        },
+        {
+          "value": "female",
+          "name": "女"
+        }
+      ],
+      "default": ""
+    },
+    {
+      "key": "pre_or_post_op",
+      "title": "检查类型",
+      "options": [
+        {
+          "value": "routine",
+          "name": "常规/非手术"
+        },
+        {
+          "value": "pre_op",
+          "name": "术前"
+        },
+        {
+          "value": "post_op",
+          "name": "术后"
+        },
+        {
+          "value": "unknown",
+          "name": "不确定"
+        }
+      ],
+      "default": "routine"
+    },
+    {
+      "key": "diagnosis_main",
+      "title": "常用诊断",
+      "options": [
+        {
+          "value": "变应性鼻炎",
+          "name": "变应性鼻炎"
+        },
+        {
+          "value": "慢性鼻炎",
+          "name": "慢性鼻炎"
+        },
+        {
+          "value": "鼻腔术后",
+          "name": "鼻腔术后"
+        },
+        {
+          "value": "",
+          "name": "其他（可修改）"
+        }
+      ],
+      "default": ""
+    }
+  ],
+  "phase_fields": [
+    {
+      "key": "phase_label",
+      "title": "视频阶段",
+      "options": [
+        {
+          "value": "unused",
+          "name": "无用片段"
+        },
+        {
+          "value": "effective_observation",
+          "name": "有效观察"
+        }
+      ],
+      "default": "effective_observation"
+    },
+    {
+      "key": "phase_quality",
+      "title": "画面质量",
+      "options": [
+        {
+          "value": "1",
+          "name": "低质量"
+        },
+        {
+          "value": "2",
+          "name": "可判读"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "key": "visible_side",
+      "title": "可见侧别",
+      "options": [
+        {
+          "value": "unknown",
+          "name": "不确定"
+        },
+        {
+          "value": "left",
+          "name": "左侧"
+        },
+        {
+          "value": "right",
+          "name": "右侧"
+        }
+      ],
+      "default": "unknown"
+    }
+  ],
+  "finding_groups": [
+    {
+      "id": "anatomy",
+      "title": "解剖区域",
+      "layout": "anatomy",
+      "controls": [
+        {
+          "key": "visible_septum",
+          "title": "鼻中隔",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "visible_inferior_turbinate",
+          "title": "下鼻甲",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "visible_middle_turbinate_or_meatus",
+          "title": "中鼻甲/鼻道",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "visible_nasal_floor_or_common_meatus",
+          "title": "鼻底/总鼻道",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "visible_nasopharynx_or_choana",
+          "title": "鼻咽/后鼻孔",
+          "type": "checkbox",
+          "default": false
+        }
+      ]
+    },
+    {
+      "id": "mucosa",
+      "title": "黏膜状态",
+      "layout": "mucosa",
+      "controls": [
+        {
+          "key": "mucosa_normal",
+          "title": "正常",
+          "type": "checkbox",
+          "default": true
+        },
+        {
+          "key": "mucosal_swelling",
+          "title": "肿胀",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "mucosal_hyperemia",
+          "title": "充血",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "mucosal_pale_edema",
+          "title": "苍白水肿",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "mucosal_erosion",
+          "title": "糜烂破损",
+          "type": "checkbox",
+          "default": false
+        },
+        {
+          "key": "crust_or_scab",
+          "title": "鼻痂",
+          "type": "checkbox",
+          "default": false
+        }
+      ]
+    },
+    {
+      "id": "secretion",
+      "title": "分泌物",
+      "layout": "secretion",
+      "controls": [
+        {
+          "key": "secretion_type",
+          "title": "类型",
+          "type": "radio",
+          "options": [
+            {
+              "value": "none",
+              "name": "无"
+            },
+            {
+              "value": "clear",
+              "name": "清亮"
+            },
+            {
+              "value": "mucoid",
+              "name": "黏液状"
+            },
+            {
+              "value": "purulent",
+              "name": "脓性"
+            },
+            {
+              "value": "bloody",
+              "name": "血性"
+            }
+          ],
+          "default": "none"
+        }
+      ]
+    },
+    {
+      "id": "nasal",
+      "title": "鼻甲与鼻道",
+      "layout": "paired",
+      "controls": [
+        {
+          "key": "turbinate_enlargement",
+          "title": "鼻甲肥大",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "不明显"
+            },
+            {
+              "value": "2",
+              "name": "明显"
+            }
+          ],
+          "default": "0"
+        },
+        {
+          "key": "turbinate_pale_edema",
+          "title": "鼻甲苍白水肿",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "有"
+            }
+          ],
+          "default": "0"
+        },
+        {
+          "key": "nasal_meatus_narrowing",
+          "title": "鼻道狭窄",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "有"
+            }
+          ],
+          "default": "0"
+        },
+        {
+          "key": "airway_obstruction_level",
+          "title": "通气阻塞",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "有"
+            }
+          ],
+          "default": "0"
+        }
+      ]
+    },
+    {
+      "id": "special",
+      "title": "鼻中隔与特殊发现",
+      "layout": "paired",
+      "controls": [
+        {
+          "key": "septal_deviation",
+          "title": "鼻中隔偏曲",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "左"
+            },
+            {
+              "value": "2",
+              "name": "右"
+            }
+          ],
+          "default": "0"
+        },
+        {
+          "key": "septal_erosion",
+          "title": "鼻中隔糜烂",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "有"
+            }
+          ],
+          "default": "0"
+        },
+        {
+          "key": "polyp_like_lesion",
+          "title": "息肉",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "有"
+            }
+          ],
+          "default": "0"
+        },
+        {
+          "key": "bleeding",
+          "title": "出血/血迹",
+          "type": "radio",
+          "options": [
+            {
+              "value": "0",
+              "name": "无"
+            },
+            {
+              "value": "1",
+              "name": "有"
+            }
+          ],
+          "default": "0"
+        }
+      ]
+    }
+  ]
+}

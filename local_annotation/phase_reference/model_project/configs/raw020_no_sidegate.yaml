@@ -1,0 +1,84 @@
+project:
+  name: nasal_effective_segmentation_release
+  root: .
+  data_root: ""
+  output_dir: outputs
+
+data:
+  phase_csv: annotations_arranged/doctor_video_phase_annotation_readable.csv
+  case_csv: annotations_arranged/doctor_case_annotation_readable.csv
+  clip_sec: 1.0
+  clip_stride_sec: 1.0
+  overlap_threshold: 0.5
+  split_seed: 2606
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  include_unannotated_as_negative: true
+
+features:
+  image_size: 224
+  frames_per_clip: 8
+  backbone: resnet18
+  pretrained: true
+  batch_size: 64
+  num_workers: 4
+  feature_dir: outputs/features_center_norm_side_brightness_resnet18
+  preprocess:
+    mode: center_norm
+    black_threshold: 18
+    sample_frames: 12
+    probe_max_sec: 5.0
+    padding_ratio: 0.06
+    min_component_area_ratio: 0.01
+    small_source_bbox_width_threshold: 0.72
+    timestamp_bright_threshold: 120
+    timestamp_region_height_ratio: 0.22
+    timestamp_region_width_ratio: 0.35
+  brightness_prior:
+    enabled: true
+    dark_luma: 0.055
+    bright_luma: 0.16
+    min_weight: 0.15
+    nonblack_floor: 0.18
+    use_frame_weighted_features: true
+
+model:
+  feature_dim: 512
+  d_model: 256
+  nhead: 4
+  num_layers: 3
+  dropout: 0.15
+  max_len: 256
+  side_num_classes: 3
+
+train:
+  seed: 2606
+  epochs: 70
+  batch_size: 32
+  lr: 0.0007
+  weight_decay: 0.0001
+  label_smoothing: 0.03
+  quality_loss_weight: 0.5
+  side_loss_weight: 0.3
+  smooth_loss_weight: 0.08
+  brightness_loss_weighting: true
+  brightness_negative_floor: 0.35
+  sequence_len: 64
+  min_labeled_clips: 2
+  patience: 12
+  device: cuda
+  num_workers: 4
+
+eval:
+  threshold: 0.2
+  min_segment_sec: 1.0
+  merge_gap_sec: 1.0
+  brightness_gate:
+    enabled: false
+    power: 0.7
+    min_prob_scale: 0.05
+  side_gate:
+    enabled: false
+    none_class: 0
+    power: 1.0

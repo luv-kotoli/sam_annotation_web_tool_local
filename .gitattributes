@@ -1,0 +1,2 @@
+# Reference bytes participate in checkpoint preprocessing fingerprints.
+local_annotation/phase_reference/** -text -whitespace

@@ -1,0 +1,1 @@
+annotation_batch_id,annotator_id,annotation_date,case_id,visit_id,video_id,segment_id,start_sec,end_sec,phase_label,quality_level,bad_reason,visible_side,visible_regions,confidence_score,notes,annotation_schema_version
