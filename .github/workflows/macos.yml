@@ -85,6 +85,7 @@ jobs:
           path: |
             test-artifacts/ci/
             test-artifacts/browser/report.json
+            test-artifacts/browser/layout-overflow.json
             test-artifacts/browser/server.log
             test-artifacts/browser/*.png
             test-artifacts/browser/trace.zip

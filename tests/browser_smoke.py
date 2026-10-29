@@ -150,7 +150,15 @@ def main():
                     page.goto(base)
                     expect(page.locator(".video-card")).to_have_count(2)
                     page.screenshot(path=str(artifacts / "library-mobile.png"), full_page=True)
-                    assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1"), "Mobile horizontal overflow"
+                    if page.evaluate("document.documentElement.scrollWidth > innerWidth + 1"):
+                        overflowing = page.evaluate("""() => [...document.body.querySelectorAll('*')].flatMap(element => {
+                            const box = element.getBoundingClientRect();
+                            return box.width && (box.right > innerWidth + 1 || box.left < -1)
+                                ? [{tag:element.tagName,id:element.id,class:element.className,
+                                    left:box.left,right:box.right,width:box.width,text:element.textContent.slice(0,120)}] : [];
+                        }).slice(0,15)""")
+                        (artifacts / "layout-overflow.json").write_text(json.dumps(overflowing, ensure_ascii=False, indent=2))
+                        raise AssertionError("Mobile horizontal overflow: " + json.dumps(overflowing, ensure_ascii=False))
                     report = {"passed": not (errors or bad_requests or external), "browser_errors": errors, "failed_requests": bad_requests, "external_requests": external,
                               "checks": ["batch upload", "video metadata/playback", "phase save", "case save", "reload persistence", "undo/redo", "finding save", "segment delete and atomic undo", "review", "ZIP download", "video navigation", "reviewed frame extraction", "selected case ZIP export", "mobile library", "no external dependencies"]}
                     (artifacts / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2))
