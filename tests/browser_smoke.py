@@ -27,6 +27,9 @@ def failure_artifacts(page, artifacts, errors, bad_requests, external):
     except BaseException as error:
         report = {"passed": False, "failure": str(error), "browser_errors": errors,
                   "failed_requests": bad_requests, "external_requests": external}
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            detail = str(error)[:12000].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print("::error title=Browser annotation workflow::" + detail, flush=True)
         try:
             page.screenshot(path=str(artifacts / "failure.png"), full_page=True, timeout=5000)
         except Exception as capture_error:

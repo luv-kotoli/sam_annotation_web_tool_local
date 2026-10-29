@@ -41,6 +41,15 @@ def main():
         lines.extend(["", "Browser failure: " + browser["failure"]])
     output = "\n".join(lines) + "\n"
     print(output)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        notices = {
+            "Execution environment": {key: environment.get(key) for key in ("system", "architecture", "python", "commit")},
+            "API and extraction test result": units,
+            "Apple device visibility (not inference)": devices,
+        }
+        for title, value in notices.items():
+            detail = json.dumps(value, ensure_ascii=False).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print(f"::notice title={title}::{detail}")
     target = os.environ.get("GITHUB_STEP_SUMMARY")
     if target:
         with open(target, "a") as handle:

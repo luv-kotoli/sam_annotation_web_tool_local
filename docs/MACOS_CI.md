@@ -20,6 +20,7 @@
 
 - Summary 汇总系统架构、单元测试数量、浏览器结果和设备清单；缺失报告显示为未完成，不写成通过。
 - 点击具体 job 可以展开失败步骤，查看原始日志。
+- 环境、测试统计和设备清单也会作为任务注释发布；浏览器失败会附上断言详情，方便不下载完整日志时定位问题。
 - 运行页下方的 **Artifacts → macos-arm64-validation** 可下载详细日志、JSON 报告、合成视频的页面截图、浏览器 trace 和导出的测试 ZIP，保留 7 天。下载产物可能需要登录 GitHub。
 - 出错时优先查看 `unit-tests.log`、浏览器 `report.json`、`server.log`、`failure.png`；安装阶段失败则直接查看对应 Actions 步骤。
 
