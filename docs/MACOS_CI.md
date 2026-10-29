@@ -4,6 +4,17 @@
 
 相关代码推送到 `main` 会自动启动；仅修改说明文档不会启动，也没有定时任务。可以在 [Actions 页面](https://github.com/luv-kotoli/sam_annotation_web_tool_local/actions/workflows/macos.yml) 手动选择 **Run workflow → main → Run workflow**。
 
+## 已完成的首次验证
+
+2026-10-29，提交 `c752ac9` 在 GitHub 托管的 **Darwin / arm64 / Python 3.13.15** 上通过：[成功运行 #3](https://github.com/luv-kotoli/sam_annotation_web_tool_local/actions/runs/40893129142)。
+
+- 接口、SQLite、冲突保护、复核、抽帧及 ZIP 合约测试：16 项通过，0 失败、0 错误、0 跳过。
+- Chromium 标注、保存／恢复、抽帧、选例导出和窄屏检查：通过。Mac 上长服务端目录导致的窄屏横向溢出已修复。
+- 硬件清单：Core ML 可见 `gpu`、`cpu`；Metal 设备名为 `Apple Paravirtual device`；`neural_engine_accessible=false`。
+- 未执行真实模型、MPS 或 Neural Engine 推理，也未测目标 Mac mini 的性能。
+
+首次任务已能自动触发、执行并上传报告，目前无需仓库所有者额外开启权限或配置凭据。
+
 ## 测试内容
 
 1. 创建独立 Python 虚拟环境，安装基础运行依赖、Playwright 和 Chromium，准备 FFmpeg。不会安装 Torch、下载权重或读取本地样例视频。

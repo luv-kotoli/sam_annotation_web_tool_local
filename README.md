@@ -107,7 +107,7 @@ python tests/browser_smoke.py
 
 如果 Playwright 在另一 Python 环境，使用 `LOCAL_APP_PYTHON` 指定应用解释器。截图和报告输出到 `test-artifacts/browser/`。
 
-Linux x86_64 / Python 3.13 上已验证人工标注、本地抽帧、病例导出和原平台隔离导入链路；测试入口和交接规则见 [交接协议](docs/CASE_BUNDLE.md)。未装实际推理依赖或模型权重，尚未完成真实 AI 推理、Mac 或 Safari 验收。
+Linux x86_64 / Python 3.13 上已验证人工标注、本地抽帧、病例导出和原平台隔离导入链路。GitHub 托管 macOS ARM64 已通过 16 项接口／抽帧测试及 Chromium 标注、抽帧、导出流程：[云端验证结果](https://github.com/luv-kotoli/sam_annotation_web_tool_local/actions/runs/40893129142)。测试入口和交接规则见 [交接协议](docs/CASE_BUNDLE.md)。真实 AI 推理、目标 Mac mini 性能及 Safari 仍待验收。
 
 ## 代码来源
 
