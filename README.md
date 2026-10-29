@@ -90,6 +90,8 @@ python run.py --host 0.0.0.0 --port 8765
 
 ## 验证
 
+GitHub 已配置 **macOS ARM64 validation**：相关代码推送后自动验证，也可在 [Actions](https://github.com/luv-kotoli/sam_annotation_web_tool_local/actions/workflows/macos.yml) 手动启动。运行范围、报告下载和需要仓库所有者处理的情况见 [macOS 托管验证](docs/MACOS_CI.md)。实际是否通过，以对应提交的云端运行结果为准。
+
 ```bash
 python -m unittest discover -s tests -p 'test_*.py' -v
 python -m compileall -q local_annotation app.py run.py
