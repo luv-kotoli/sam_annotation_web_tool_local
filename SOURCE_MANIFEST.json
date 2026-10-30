@@ -30,7 +30,7 @@
       "origin": "clinical_static/crop-overlay.js",
       "target": "local_annotation/assets/crop-overlay.js",
       "source_sha256": "d4ea3fbbc78050831f85037526559498d5ff144ac666cd95875ad317c03bf182",
-      "local_sha256": "d4ea3fbbc78050831f85037526559498d5ff144ac666cd95875ad317c03bf182"
+      "local_sha256": "402d1978e65af8da225ca837f6b51b9913a934ce273fa064ce84532cc575a7bf"
     },
     {
       "origin": "workflow.css",

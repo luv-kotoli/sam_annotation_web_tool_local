@@ -29,11 +29,15 @@
           if (generation !== this.generation) return;
           if (data.state === "stored" && data.record?.schema === "sam-workflow.video-crop.v1") {
             this.record = data.record; this.button.hidden = false; this.status.hidden = true; this.draw();
+            this.timer = setTimeout(poll, 10000);
           } else if (data.state === "pending") {
             this.status.textContent = "AI 裁剪框待保存"; this.status.hidden = false;
             this.timer = setTimeout(poll, 5000);
           } else {
             this.status.hidden = true;
+            // Upload-triggered inference may start after this editor opened.
+            // Continue discovery so its real crop appears without a page reload.
+            this.timer = setTimeout(poll, 10000);
           }
         } catch (_) {
           if (generation !== this.generation) return;

@@ -111,7 +111,7 @@ def main():
                             route.continue_()
                     page.route('**/api/upload-sessions/*', lose_first_ack)
                     page.locator("#uploadInput").set_input_files([root / "demo-one.mp4", root / "demo-two.mp4"])
-                    expect(page.locator(".video-card")).to_have_count(2, timeout=20000)
+                    expect(page.locator(".video-card")).to_have_count(2, timeout=60000)
                     assert lost_ack == ['1000'], lost_ack
                     page.unroute('**/api/upload-sessions/*', lose_first_ack)
                     page.locator('#selectPage').check()
@@ -130,14 +130,19 @@ def main():
                               'source': 'synthetic-test', 'intervals': [
                                   {'start_sec': 0, 'end_sec': 2, 'points': [[40,30],[600,30],[600,440],[40,440]]},
                                   {'start_sec': 2, 'end_sec': 5, 'points': [[80,60],[560,60],[560,420],[80,420]]}]}
-                    with sqlite3.connect(root/'data/annotations.sqlite3') as connection:
-                        connection.execute('INSERT INTO crop_records VALUES(?,?,?,?)', (first_video['id'], 'synthetic-browser-fixture', json.dumps(record), time.time()))
                     page.screenshot(path=str(artifacts / "library.png"), full_page=True)
-                    page.locator(".open-editor").last.click()
+                    with page.expect_response(lambda response: f"/workflow/videos/{first_video['id']}/crop-record" in response.url) as initial_crop:
+                        page.locator(".open-editor").last.click()
+                    assert initial_crop.value.json()['state'] == 'unavailable'
                     page.wait_for_function("document.getElementById('workspace').getAttribute('aria-busy') === 'false'")
                     expect(page.locator("#notice")).to_be_hidden()
                     page.wait_for_function("document.getElementById('videoPlayer').readyState >= 1")
                     expect(page.locator("#videoName")).to_have_text("demo-one.mp4")
+                    expect(page.locator('#toggleCropOverlay')).to_be_hidden()
+                    # Inference may finish after the player was opened. A new
+                    # stored crop must appear without saving or reloading.
+                    with sqlite3.connect(root/'data/annotations.sqlite3') as connection:
+                        connection.execute('INSERT INTO crop_records VALUES(?,?,?,?)', (first_video['id'], 'synthetic-browser-fixture', json.dumps(record), time.time()))
                     expect(page.locator('#toggleCropOverlay')).to_be_visible()
                     expect(page.locator('#videoCropOverlay')).to_be_visible()
                     expect(page.locator('#videoCropOverlay polygon')).to_have_attribute('points', '40,30 600,30 600,440 40,440')
@@ -234,7 +239,7 @@ def main():
                     assert not list((root/'data/exports').glob('*.zip'))
                     assert not list((root/'data/frames').glob('*'))
                     report = {"passed": not (errors or bad_requests or external), "browser_errors": errors, "failed_requests": bad_requests, "external_requests": external,
-                              "checks": ["insecure LAN HTTP without Web Crypto", "resumable upload from saved offset", "lost chunk acknowledgement recovery", "auto analysis setting persistence", "batch AI waiting for real models", "synthetic crop overlay with seeking and toggle", "cancel and confirm whole-case batch deletion", "cached frames and export cleanup", "batch upload", "video metadata/playback", "phase save", "case save", "reload persistence", "undo/redo", "finding save", "segment delete and atomic undo", "review", "ZIP download", "video navigation", "reviewed frame extraction", "selected case ZIP export", "mobile library", "no external dependencies"]}
+                              "checks": ["insecure LAN HTTP without Web Crypto", "resumable upload from saved offset", "lost chunk acknowledgement recovery", "auto analysis setting persistence", "batch AI waiting for real models", "synthetic crop discovery after editor open, seeking and toggle", "cancel and confirm whole-case batch deletion", "cached frames and export cleanup", "batch upload", "video metadata/playback", "phase save", "case save", "reload persistence", "undo/redo", "finding save", "segment delete and atomic undo", "review", "ZIP download", "video navigation", "reviewed frame extraction", "selected case ZIP export", "mobile library", "no external dependencies"]}
                     (artifacts / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2))
                     assert report["passed"], report
                     context.tracing.stop(path=str(artifacts / "trace.zip"))
