@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 import sqlite3
 import time
+import threading
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -37,6 +38,7 @@ def now():
 class Store:
     def __init__(self, settings):
         self.settings = settings
+        self.file_lock = threading.RLock()
         settings.prepare()
         with self.connect() as conn:
             conn.executescript("""
@@ -74,8 +76,36 @@ class Store:
                     progress REAL NOT NULL DEFAULT 0,error TEXT NOT NULL DEFAULT '',
                     manifest_json TEXT,created_at REAL NOT NULL,updated_at REAL NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS upload_sessions(
+                    id TEXT PRIMARY KEY,filename TEXT NOT NULL,sha256 TEXT NOT NULL,size_bytes INTEGER NOT NULL,
+                    offset INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT 'uploading',
+                    video_id INTEGER REFERENCES videos(id) ON DELETE SET NULL,
+                    auto_analyze INTEGER NOT NULL DEFAULT 1,created_at REAL NOT NULL,updated_at REAL NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS upload_identity ON upload_sessions(sha256,size_bytes,status);
+                CREATE TABLE IF NOT EXISTS upload_analysis(
+                    video_id INTEGER PRIMARY KEY REFERENCES videos(id) ON DELETE CASCADE,
+                    state TEXT NOT NULL,detail TEXT NOT NULL DEFAULT '',job_id TEXT,updated_at REAL NOT NULL,
+                    origin TEXT NOT NULL DEFAULT 'upload'
+                );
+                CREATE TABLE IF NOT EXISTS crop_records(
+                    video_id INTEGER PRIMARY KEY REFERENCES videos(id) ON DELETE CASCADE,
+                    job_id TEXT NOT NULL,record_json TEXT NOT NULL,updated_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS case_exports(id TEXT PRIMARY KEY,created_at REAL NOT NULL);
+                CREATE TABLE IF NOT EXISTS export_cases(
+                    export_id TEXT NOT NULL REFERENCES case_exports(id) ON DELETE CASCADE,
+                    video_id INTEGER NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+                    PRIMARY KEY(export_id,video_id)
+                );
             """)
             conn.execute("INSERT OR IGNORE INTO local_meta VALUES('instance_id',?)", (uuid4().hex,))
+            conn.execute("INSERT OR IGNORE INTO local_meta VALUES('auto_analyze_uploads','true')")
+            for field,definition in (('base_revision','INTEGER'),('origin',"TEXT NOT NULL DEFAULT 'manual'"),('model_identity_json','TEXT')):
+                if field not in {row[1] for row in conn.execute('PRAGMA table_info(jobs)')}:
+                    conn.execute('ALTER TABLE jobs ADD COLUMN '+field+' '+definition)
+            if 'origin' not in {row[1] for row in conn.execute('PRAGMA table_info(upload_analysis)')}:
+                conn.execute("ALTER TABLE upload_analysis ADD COLUMN origin TEXT NOT NULL DEFAULT 'upload'")
 
     @contextmanager
     def connect(self, write=False):
@@ -108,12 +138,16 @@ class Store:
         extraction = dict(extraction) if extraction else None
         if extraction and extraction['status'] == 'succeeded' and extraction['revision'] != row['revision']:
             extraction['status'] = 'stale'
+        analysis = conn.execute('SELECT id,status,progress,error,origin FROM jobs WHERE video_id=? ORDER BY created_at DESC LIMIT 1',(row['id'],)).fetchone()
+        automatic = conn.execute('SELECT state,detail,job_id,origin FROM upload_analysis WHERE video_id=?',(row['id'],)).fetchone()
         return {key: row[key] for key in ("id", "case_id", "sha256", "size_bytes", "duration_seconds", "width", "height", "codec", "revision", "review_state", "created_at")} | {
             "original_filename": row["filename"], "clinical_video_id": str(row["id"]),
             "managed": True, "locked_legacy": False, "phase_count": count,
             "media_url": f"/api/videos/{row['id']}/media",
             "editor_url": f"/clinical/editor/?workflow_video_id={row['id']}",
             "extraction": extraction,
+            "analysis": dict(analysis) if analysis else None,
+            "upload_analysis": dict(automatic) if automatic else None,
         }
 
     def rows(self, conn, video_id, table):

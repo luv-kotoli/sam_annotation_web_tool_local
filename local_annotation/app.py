@@ -5,10 +5,8 @@ from datetime import date
 import hashlib
 import io
 import json
-import os
 from pathlib import Path
 import shutil
-import time
 from urllib.parse import urlsplit
 from uuid import uuid4
 import zipfile
@@ -18,14 +16,18 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
-from .media import EXTENSIONS, probe
+from .media import probe
 from .settings import Settings
 from .store import ASSETS, TABLES, Store, encode, headers, now
+from .uploads import VideoUploads
+from .deletion import CaseDeletion
 
 
 def create_app(settings=None):
     settings = settings or Settings.from_env()
     store = Store(settings)
+    uploads = VideoUploads(store)
+    deletion = CaseDeletion(store)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -41,6 +43,7 @@ def create_app(settings=None):
     app = FastAPI(title="本地视频阶段标注", lifespan=lifespan)
     app.state.store = store
     app.state.settings = settings
+    uploads.install(app)
     app.mount("/clinical/assets", StaticFiles(directory=ASSETS), name="editor-assets")
     app.mount("/workflow/static", StaticFiles(directory=ASSETS), name="workspace-assets")
     app.mount("/static", StaticFiles(directory=ASSETS), name="local-assets")
@@ -98,10 +101,8 @@ def create_app(settings=None):
 
     @app.post("/api/videos/upload", status_code=201)
     async def upload(request: Request, filename: str):
-        filename = filename.replace("\\", "/").split("/")[-1].strip()
+        filename = uploads.filename(filename)
         suffix = Path(filename).suffix.lower()
-        if suffix not in EXTENSIONS or not filename or len(filename) > 240:
-            raise HTTPException(422, "请选择 mp4、mov、m4v、webm、mkv 或 avi 视频")
         temporary = settings.temporary / (uuid4().hex + suffix)
         digest, size = hashlib.sha256(), 0
         try:
@@ -121,29 +122,14 @@ def create_app(settings=None):
                 if duplicate:
                     return JSONResponse({"detail": "此视频已在本机视频库中，改名不会重复导入。", "existing_video": store.public_video(conn, duplicate)}, status_code=409)
             metadata = await run_in_threadpool(probe, temporary)
-            return await run_in_threadpool(register_video, temporary, filename, sha256, size, metadata)
+            try:
+                return await run_in_threadpool(uploads.register, temporary, filename, sha256, size, metadata)
+            except HTTPException as error:
+                if error.status_code == 409 and isinstance(error.detail, dict):
+                    return JSONResponse({'detail': error.detail['message'], 'existing_video': error.detail['existing_video']}, status_code=409)
+                raise
         finally:
             temporary.unlink(missing_ok=True)
-
-    def register_video(temporary, filename, sha256, size, metadata):
-        stored_name = uuid4().hex + temporary.suffix
-        target = settings.videos / stored_name
-        moved = False
-        try:
-            with store.connect(write=True) as conn:
-                duplicate = conn.execute("SELECT * FROM videos WHERE sha256=?", (sha256,)).fetchone()
-                if duplicate:
-                    return JSONResponse({"detail": "此视频已导入", "existing_video": store.public_video(conn, duplicate)}, status_code=409)
-                os.replace(temporary, target)
-                moved = True
-                case_id = "LOCAL-" + uuid4().hex[:12].upper()
-                cursor = conn.execute("""INSERT INTO videos(case_id,filename,stored_name,sha256,size_bytes,duration_seconds,width,height,codec,created_at)
-                    VALUES(?,?,?,?,?,?,?,?,?,?)""", (case_id, filename, stored_name, sha256, size, metadata["duration_seconds"], metadata["width"], metadata["height"], metadata["codec"], time.time()))
-                return {"ok": True, "video": store.public_video(conn, store.video(conn, cursor.lastrowid))}
-        except BaseException:
-            if moved:
-                target.unlink(missing_ok=True)
-            raise
 
     @app.api_route("/api/videos/{video_id}/media", methods=["GET", "HEAD"])
     def media(video_id: int):
@@ -156,32 +142,34 @@ def create_app(settings=None):
 
     @app.delete("/api/videos/{video_id}")
     def delete_video(video_id: int, body: dict):
-        parked = None
-        try:
-            with store.connect(write=True) as conn:
-                video = store.video(conn, video_id)
-                if body.get("expected_revision") != video["revision"] or body.get("confirm_filename") != video["filename"]:
-                    raise HTTPException(409, "视频已更新或确认信息不符，请刷新后重试")
-                if conn.execute("SELECT 1 FROM jobs WHERE video_id=? AND status IN ('queued','running')", (video_id,)).fetchone():
-                    raise HTTPException(409, "视频还有运行中的分析任务，请等待完成后再删除")
-                if conn.execute("SELECT 1 FROM extractions WHERE video_id=? AND status IN ('queued','running')", (video_id,)).fetchone():
-                    raise HTTPException(409, "视频还有运行中的抽帧任务，请等待完成后再删除")
-                extraction_ids=[row[0] for row in conn.execute('SELECT id FROM extractions WHERE video_id=?',(video_id,))]
-                target = settings.videos / video["stored_name"]
-                if target.exists():
-                    parked = settings.temporary / (uuid4().hex + ".deleted")
-                    os.replace(target, parked)
-                conn.execute("DELETE FROM videos WHERE id=?", (video_id,))
-                conn.execute("INSERT INTO audit(video_id,action,detail_json,created_at) VALUES(?,?,?,?)", (video_id, "delete-video", encode({"sha256": video["sha256"], "filename": video["filename"]}), now()))
-        except BaseException:
-            if parked is not None and parked.exists():
-                os.replace(parked, target)
-            raise
-        if parked is not None:
-            parked.unlink(missing_ok=True)
-        for identifier in extraction_ids:
-            shutil.rmtree(settings.frames/identifier,ignore_errors=True)
-        return {"ok": True}
+        with store.connect() as conn:
+            video = store.video(conn, video_id)
+            if body.get('expected_revision') != video['revision'] or body.get('confirm_filename') != video['filename']:
+                raise HTTPException(409, '视频已更新或确认信息不符，请刷新后重试')
+            preview = deletion.plan(conn, [video_id])[0]
+        return deletion.delete({'video_ids': [video_id], 'token': preview['token'], 'confirm_count': 1})
+
+    @app.post('/api/cases/delete-preview')
+    def delete_preview(body: dict):
+        return deletion.preview(body)
+
+    @app.post('/api/cases/delete')
+    def delete_cases(body: dict):
+        return deletion.delete(body)
+
+    @app.get('/api/settings')
+    def get_settings():
+        with store.connect() as conn:
+            return {'ok': True, 'auto_analyze_uploads': uploads.automatic_enabled(conn)}
+
+    @app.patch('/api/settings')
+    def put_settings(body: dict):
+        enabled = body.get('auto_analyze_uploads')
+        if type(enabled) is not bool or set(body) != {'auto_analyze_uploads'}:
+            raise HTTPException(422, '自动分析设置无效')
+        with store.connect(write=True) as conn:
+            conn.execute("UPDATE local_meta SET value=? WHERE key='auto_analyze_uploads'", ('true' if enabled else 'false',))
+        return {'ok': True, 'auto_analyze_uploads': enabled}
 
     def profile(video):
         return {"ok": True, "case_id": video["case_id"], "patient_name": "", "details": json.loads(video["profile_json"]), "revision": video["profile_revision"], "locked": False}
@@ -271,7 +259,11 @@ def create_app(settings=None):
     def crop_record(video_id: int):
         with store.connect() as conn:
             store.video(conn, video_id)
-        return {"state": "unavailable", "record": None}
+            record = conn.execute('SELECT record_json FROM crop_records WHERE video_id=?', (video_id,)).fetchone()
+            if record:
+                return {'state': 'stored', 'record': json.loads(record[0])}
+            active = conn.execute("SELECT 1 FROM jobs WHERE video_id=? AND status IN ('queued','running')", (video_id,)).fetchone()
+        return {'state': 'pending' if active else 'unavailable', 'record': None}
 
     def export_payload(conn, video):
         return {"format": "local-video-annotations.v1", "exported_at": now(), "video": store.public_video(conn, video),
@@ -309,6 +301,10 @@ def create_app(settings=None):
     @app.post("/api/videos/{video_id}/analyze", status_code=202)
     def analyze(video_id: int):
         return app.state.analysis.submit(video_id)
+
+    @app.post('/api/analysis-batches', status_code=202)
+    def analyze_batch(body: dict):
+        return app.state.analysis.batch(body)
 
     @app.post("/api/jobs/{job_id}/apply")
     def apply_analysis(job_id: str, body: dict):

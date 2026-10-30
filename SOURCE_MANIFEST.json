@@ -166,8 +166,14 @@
       "target": "local_annotation/phase_reference/model_project/configs/brightness_nogate_default.yaml",
       "source_sha256": "80863b4a1a092c2b0e2fa1ecc993f24d5022d7f013ecbc5b252f7dd513cdaf5f",
       "local_sha256": "80863b4a1a092c2b0e2fa1ecc993f24d5022d7f013ecbc5b252f7dd513cdaf5f"
+    },
+    {
+      "origin": "clinical_static/video-hash-worker.js",
+      "target": "local_annotation/assets/video-hash-worker.js",
+      "source_sha256": "be49f56155feb067d37b33ef055be92e8ee5b704973f38121b3eae7f8ad4c29d",
+      "local_sha256": "0bf459f6d54a6396cffe97a7adf89be6cd0ef1fb83d60a126d192bf964ba2279"
     }
   ],
-  "local_version": "0.2.0",
-  "notes": "Local changes include standalone navigation, local storage, reviewed extraction and portable case-bundle transfer. Source feature function and AdaptiveFOV bytes remain compatible."
+  "local_version": "0.3.0",
+  "notes": "Standalone navigation, local storage, resumable LAN uploads, case-wide deletion, automatic/batch AI proposals, recorded crop overlays, reviewed extraction and portable case-bundle transfer. The reference feature function and AdaptiveFOV bytes remain unchanged. The local hash worker removes legacy ID generation and works on ordinary LAN HTTP."
 }

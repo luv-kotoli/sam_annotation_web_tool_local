@@ -39,6 +39,10 @@ class Settings:
     def exports(self):
         return self.data_dir / "exports"
 
+    @property
+    def uploads(self):
+        return self.data_dir / "uploads"
+
     def prepare(self):
-        for path in (self.data_dir, self.videos, self.temporary, self.models, self.frames, self.exports):
+        for path in (self.data_dir, self.videos, self.temporary, self.models, self.frames, self.exports, self.uploads):
             path.mkdir(parents=True, exist_ok=True)

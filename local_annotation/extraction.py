@@ -122,6 +122,12 @@ class Extractions:
                 process.kill();process.wait()
 
     def export(self,body):
+        # Serialize file snapshots with case deletion, including the final DB
+        # index entry so a cached bundle cannot outlive deletion unnoticed.
+        with self.store.file_lock:
+            return self._export(body)
+
+    def _export(self,body):
         ids=body.get('video_ids')
         if not isinstance(ids,list) or not 1<=len(ids)<=100 or any(type(item) is not int for item in ids) or len(set(ids))!=len(ids):
             raise HTTPException(422,'请选择 1–100 个不同病例')
@@ -159,6 +165,7 @@ class Extractions:
         temporary=self.store.settings.temporary/(identifier+'.zip')
         target=self.store.settings.exports/(identifier+'.zip')
         files=[]
+        committed=False
         try:
             with zipfile.ZipFile(temporary,'w',zipfile.ZIP_DEFLATED,compresslevel=1) as archive:
                 for path,source,digest,size in sources:
@@ -178,11 +185,17 @@ class Extractions:
                 archive.writestr('manifest.json',raw_manifest)
             if temporary.stat().st_size>MAX_ARCHIVE:
                 raise HTTPException(413,'导出包超过 2 GiB，请减少所选病例或抽帧率')
-            temporary.replace(target)
+            with self.store.connect(write=True) as conn:
+                conn.execute('INSERT INTO case_exports(id,created_at) VALUES(?,?)',(identifier,time.time()))
+                conn.executemany('INSERT INTO export_cases(export_id,video_id) VALUES(?,?)',[(identifier,video_id) for video_id in ids])
+                temporary.replace(target)
+            committed=True
             return {'ok':True,'bundle_id':manifest['bundle_id'],'case_count':len(cases),'frame_count':len(sources),
                     'download_url':'/api/exports/'+identifier,'size_bytes':target.stat().st_size}
         finally:
             temporary.unlink(missing_ok=True)
+            if not committed:
+                target.unlink(missing_ok=True)
 
 
 from contextlib import contextmanager

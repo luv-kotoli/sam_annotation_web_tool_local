@@ -168,7 +168,7 @@ class LocalWorkflowTests(unittest.TestCase):
         body = {"expected_revision": 0, "confirm_filename": "sample.mp4"}
         self.assertEqual(self.client.request("DELETE", route, json=body).status_code, 409)
         body["expected_revision"] = 1
-        with patch("local_annotation.app.os.replace", side_effect=OSError("disk error")):
+        with patch("local_annotation.deletion.os.replace", side_effect=OSError("disk error")):
             with self.assertRaises(OSError):
                 self.client.request("DELETE", route, json=body)
         self.assertEqual(self.client.get(self.video["media_url"]).status_code, 200)

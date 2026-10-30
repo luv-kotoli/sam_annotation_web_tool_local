@@ -19,8 +19,8 @@
 
 1. 创建独立 Python 虚拟环境，安装基础运行依赖、Playwright 和 Chromium，准备 FFmpeg。不会安装 Torch、下载权重或读取本地样例视频。
 2. 明确检查操作系统为 Darwin、架构为 arm64，并记录 Python、依赖、FFmpeg 和 Node 版本；不会把 Linux 上的结果标成 Mac 验证。
-3. 检查 Python 与 JavaScript 语法，运行接口、数据库、版本冲突、复核、真实 FFmpeg 抽帧及病例 ZIP 测试。缺少 FFmpeg 导致的跳过不会算成功。
-4. Chromium 自动操作批量上传、阶段／征象／病例保存、刷新持久化、撤销重做、复核、抽帧和病例 ZIP 下载，以及窄屏视频库。所有视频由 FFmpeg 临时生成。
+3. 检查 Python 与 JavaScript 语法，运行接口、数据库、版本冲突、复核、续传重启与校验、AI 调度及旧结果保护、整例删除回滚、真实 FFmpeg 抽帧及病例 ZIP 测试。缺少 FFmpeg 导致的跳过不会算成功。
+4. Chromium 在普通 HTTP 的局域网式地址上自动操作多分块续传、丢失回复恢复、自动分析开关、批量分析等待配置、合成裁剪框随时间切换、整例批量删除，以及阶段／征象／病例保存、刷新、撤销重做、复核、抽帧、ZIP 下载和窄屏视频库。所有视频由 FFmpeg 临时生成，裁剪框为明确的测试记录，不是真实推理。
 5. 通过系统 Core ML / Metal 框架记录可见计算设备。这只是设备能力清单，不加载模型，不证明 MPS 或 Neural Engine 推理可用；此项不可用时保留日志，不阻止功能测试。
 
 测试只使用当前仓库和临时数据，不连接原网关、wg-data 或 SAM 服务。跨仓库 `browser_transfer.py` 不属于这份云端作业。Safari、真实模型、性能和目标 Mac mini 的局域网仍分别验收。
