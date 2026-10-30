@@ -63,6 +63,11 @@ class VideoUploads:
                 # Keep resumable bytes until the DB commit. A process failure at
                 # finalization can retry without re-uploading the entire video.
                 if session_id:
+                    # An interrupted finalization may have left the link (or a
+                    # partial fallback copy) before its transaction committed.
+                    # The session still owns the verified .part as source.
+                    target.unlink(missing_ok=True)
+                    moved = True
                     try:
                         os.link(temporary, target)
                     except OSError:

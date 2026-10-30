@@ -56,6 +56,9 @@ class LanWorkflowTests(Base):
         resumed = self.start_upload(content, 'renamed.mp4')
         self.assertEqual((resumed['session_id'], resumed['offset']), (identifier, 10000))
         self.assertEqual(self.chunk(identifier, 10000, content[10000:]).json()['offset'], len(content))
+        # Simulate a process dying after linking the verified bytes but before
+        # committing registration. Both paths can reference the same inode.
+        os.link(self.settings.uploads/(identifier+'.part'), self.settings.videos/(identifier+'.mp4'))
         response = self.client.post(f'/api/upload-sessions/{identifier}/complete')
         self.assertEqual(response.status_code, 200, response.text)
         video = response.json()['video']
